@@ -272,18 +272,24 @@ def make_functions(problem_data):
     ham = problem_data['hamiltonian']
     logging.info('Making unconstrained control')
     if problem_data['method'] is not 'direct':
-        control_fn, ham_fn = make_control_and_ham_fn(unc_control_law, states, dynamical_parameters, constants, controls, ham)
+        control_fn, ham_fn = \
+            make_control_and_ham_fn(unc_control_law, states, dynamical_parameters, constants, controls, ham)
+
         def initial_cost(*args, **kwargs):
             return 0
+
         def path_cost(*args, **kwargs):
             return 0
+
         def terminal_cost(*args, **kwargs):
             return 0
     else:
         def control_fn(X, u, p, C):
             return u
+
         ham_fn = None
-        initial_cost, path_cost, terminal_cost = make_cost_func(initial_cost, path_cost, terminal_cost, states, dynamical_parameters, constants, controls)
+        initial_cost, path_cost, terminal_cost = \
+            make_cost_func(initial_cost, path_cost, terminal_cost, states, dynamical_parameters, constants, controls)
 
     if problem_data['method'] is not 'direct' and len(path_constraints) > 0:
         raise NotImplementedError('Path constraints not implemented for indirect-type methods.')
@@ -297,7 +303,8 @@ def make_functions(problem_data):
     quad_func = make_quad_func(quads_rates, states, quads, dynamical_parameters, constants, controls, control_fn)
     bc_initial = problem_data['bc_initial']
     bc_terminal = problem_data['bc_terminal']
-    bc_func = make_bc_func(bc_initial, bc_terminal, states, quads, dynamical_parameters, nondynamical_parameters, constants, controls, control_fn)
+    bc_func = make_bc_func(bc_initial, bc_terminal, states, quads, dynamical_parameters, nondynamical_parameters,
+                           constants, controls, control_fn)
 
     return deriv_func, quad_func, bc_func, control_fn, ham_fn, initial_cost, path_cost, terminal_cost, ineq_constraints
 
