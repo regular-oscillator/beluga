@@ -21,6 +21,16 @@ import beluga
 
 
 def save(ocp=None, bvp_solver=None, sol_set=None, filename='data.blg'):
+    """
+    Save ocp, bvp solver, and solution set from problem in a dictionary to a file.
+    Can save partial dictionary
+
+    :param ocp: Problem's ocp class with problem description (beluga.problem.OCP)
+    :param bvp_solver: Problem's bvp solver class that can run problem (subclass of beluga.bvpsol.BaseAlgorithm)
+    :param sol_set: Set of solutions (List of lists of beluga.ivpsol.Trajectory)
+    :param filename: Name of output file
+    :return:
+    """
     assert any([ocp is not None, bvp_solver is not None, sol_set is not None]), 'No data given to save.'
 
     save_dict = {}
@@ -34,7 +44,7 @@ def save(ocp=None, bvp_solver=None, sol_set=None, filename='data.blg'):
         save_dict['bvp solver'] = bvp_solver
 
     if sol_set is not None:
-        assert all([sol.__class__ is beluga.ivpsol.ivpsol.Trajectory for cont_set in sol_set for sol in cont_set]),\
+        assert all([sol.__class__ is beluga.ivpsol.Trajectory for cont_set in sol_set for sol in cont_set]),\
             'all solutions in sol_set should be of class beluga.ivpsol.ivpsol.Trajectory'
         save_dict['solutions'] = sol_set
 
@@ -43,6 +53,12 @@ def save(ocp=None, bvp_solver=None, sol_set=None, filename='data.blg'):
 
 
 def load(filename):
+    """
+    Load from save file
+    
+    :param filename:
+    :return:
+    """
     with open(filename, 'rb') as file:
         save_dict = pickle.load(file)
 
