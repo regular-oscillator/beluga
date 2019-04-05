@@ -3,6 +3,7 @@ from .beluga import bvp_algorithm, guess_generator, ocp2bvp, run_continuation_se
 from .continuation import ContinuationList as init_continuation
 from .problem import OCP
 from .scaling import Scaling
+from .visualization import visualization
 
 import os
 import glob
@@ -10,4 +11,4 @@ import glob
 from beluga.release import __version__
 
 modules = glob.glob(os.path.dirname(__file__)+"/*.py")
-__all__ = [ os.path.basename(f)[:-3] for f in modules]
+__all__ = [os.path.basename(f)[:-3] for f in modules]
