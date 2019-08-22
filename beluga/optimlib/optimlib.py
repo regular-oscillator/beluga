@@ -57,7 +57,7 @@ def init_workspace(ocp):
                                            for c_type, c_list in constraints.items() if c_type == 'path'}
 
     workspace['constraints_method'] = {c_type: [c_obj['method'] for c_obj in c_list]
-                                           for c_type, c_list in constraints.items() if c_type == 'path'}
+                                       for c_type, c_list in constraints.items() if c_type == 'path'}
 
     if 'initial' not in workspace['constraints'].keys():
         workspace['constraints']['initial'] = []
@@ -274,11 +274,11 @@ def make_dhdu(ham, controls, derivative_fn):
     :return: :math:`dH/du`
     """
 
-    dHdu = []
+    dhdu = []
     for ctrl in controls:
-        dHdu.append(derivative_fn(ham, ctrl))
+        dhdu.append(derivative_fn(ham, ctrl))
 
-    return dHdu
+    return dhdu
 
 
 def make_hamiltonian(states, states_rates, states_units, path_cost, path_cost_units):
@@ -424,6 +424,7 @@ def utm_path(constraint, lower, upper, activator):
     if lower is None or upper is None:
         raise NotImplementedError('Lower and upper bounds on UTM-style path constraints MUST be defined.')
     return activator*(1/(sympy.cos(sympy.pi/2*(2*constraint - upper - lower) / (upper - lower))) - 1)
+
 
 def rash_mult(condition, tolerance):
     r"""

@@ -85,7 +85,7 @@ def make_bvp(problem_data):
     return bvp
 
 
-def make_control_and_ham_fn(control_opts, states, parameters, constants, controls, ham, dHdu, control_method):
+def make_control_and_ham_fn(control_opts, states, parameters, constants, controls, ham, dhdu, control_method):
     r"""
     Makes the control and Hamiltonian functions.
 
@@ -95,7 +95,7 @@ def make_control_and_ham_fn(control_opts, states, parameters, constants, control
     :param constants: List of constants.
     :param controls: List of controls.
     :param ham: The Hamiltonian function.
-    :param dHdu: Derivative of the Hamiltonian with respect to the control variables.
+    :param dhdu: Derivative of the Hamiltonian with respect to the control variables.
     :param control_method: The name of the control method.
     :return: (compute_control_fn, hamiltonian_fn) - Functions that compute the optimal control and the Hamiltonian.
     """
@@ -138,14 +138,14 @@ def make_control_and_ham_fn(control_opts, states, parameters, constants, control
             return np.array([])
 
     elif control_method == 'numerical':
-        dHdu_str = '(' + ','.join(dHdu) + ')'
-        dHdu_fn = make_jit_fn(ham_args, dHdu_str)
+        dhdu_str = '(' + ','.join(dhdu) + ')'
+        dhdu_fn = make_jit_fn(ham_args, dhdu_str)
 
         def compute_control_fn(X, u, p, C):
-            opt = fsolve(lambda _u: dHdu_fn(*X, *p, *C, *_u), x0=[-1]*num_controls)
+            opt = fsolve(lambda _u: dhdu_fn(*X, *p, *C, *_u), x0=[-1]*num_controls)
 
             # def loss2(X, _u, p, C):
-            #     return (dHdu_fn(*X, *p, *C, *_u))**2
+            #     return (dhdu_fn(*X, *p, *C, *_u))**2
 
             # opt2 = minimize(lambda _u: loss2(X, _u, p, C), x0=[1]*num_controls)
             return opt

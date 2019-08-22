@@ -11,9 +11,9 @@ from beluga import problem, helpers
 import beluga.bvpsol as bvpsol
 from beluga.ivpsol import Trajectory
 from beluga.utils import save
-from beluga.optimlib.indirect import ocp_to_bvp as BH_ocp_to_bvp
-from beluga.optimlib.diffyg import ocp_to_bvp as DIFFYG_ocp_to_bvp
-from beluga.optimlib.direct import ocp_to_bvp as DIRECT_ocp_to_bvp
+from beluga.optimlib.indirect import ocp_to_bvp as indirect_ocp_to_bvp
+from beluga.optimlib.diffyg import ocp_to_bvp as diffyg_ocp_to_bvp
+from beluga.optimlib.direct import ocp_to_bvp as direct_ocp_to_bvp
 import time
 from collections import OrderedDict
 import pathos
@@ -79,11 +79,11 @@ def ocp2bvp(ocp, **kwargs):
 
     logging.debug("Computing the necessary conditions of optimality")
     if method == 'indirect' or method == 'traditional' or method == 'brysonho':
-        bvp_raw, _map, _map_inverse = BH_ocp_to_bvp(ocp, **optim_options)
+        bvp_raw, _map, _map_inverse = indirect_ocp_to_bvp(ocp, **optim_options)
     elif method == 'diffyg':
-        bvp_raw, _map, _map_inverse = DIFFYG_ocp_to_bvp(ocp, **optim_options)
+        bvp_raw, _map, _map_inverse = diffyg_ocp_to_bvp(ocp, **optim_options)
     elif method == 'direct':
-        bvp_raw, _map, _map_inverse = DIRECT_ocp_to_bvp(ocp, **optim_options)
+        bvp_raw, _map, _map_inverse = direct_ocp_to_bvp(ocp, **optim_options)
     else:
         raise NotImplementedError
 

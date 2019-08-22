@@ -119,7 +119,8 @@ class OCP(object):
     constant = partialmethod(set_property, property_name='constants', property_args=('name', 'value', 'unit'))
     constant_of_motion = partialmethod(set_property, property_name='constants_of_motion',
                                        property_args=('name', 'function', 'unit'))
-    switch = partialmethod(set_property, property_name='switches', property_args=('name', 'value', 'conditions', 'tolerance'))
+    switch = partialmethod(set_property, property_name='switches',
+                           property_args=('name', 'value', 'conditions', 'tolerance'))
     quantity = partialmethod(set_property, property_name='switches', property_args=('name', 'value'))
     symmetry = partialmethod(set_property, property_name='symmetries', property_args=('function',))
     parameter = partialmethod(set_property, property_name='parameters', property_args=('name', 'unit'))

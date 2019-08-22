@@ -63,10 +63,10 @@ def ocp_to_bvp(ocp, **kwargs):
     else:
         raise ValueError('Initial, path, and terminal cost functions are not defined.')
 
-    states += [independent_variable]
-    states_units += [independent_variable_units]
-    states_rates += [sympify('1')]
-    independent_index = len(states)-1
+    # states += [independent_variable]
+    # states_units += [independent_variable_units]
+    # states_rates += [sympify('1')]
+    # independent_index = len(states)-1
 
     """
     Deal with path constraints
@@ -92,12 +92,13 @@ def ocp_to_bvp(ocp, **kwargs):
                 raise NotImplementedError('Epsilon-Trig must be used with pure control-constraints.')
 
             path_cost += epstrig_path(c, constraints_lower['path'][ii], constraints_upper['path'][ii],
-                                  constraints_activators['path'][ii])
+                                      constraints_activators['path'][ii])
             upper = constraints_upper['path'][ii]
             lower = constraints_lower['path'][ii]
-            subber = dict(zip([constraints['path'][ii]], [(upper - lower)/2*sympy.sin(constraints['path'][ii]) + (upper+lower)/2]))
-            for ii in range(len(states_rates)):
-                states_rates[ii] = states_rates[ii].subs(subber, simultaneous=True)
+            subber = dict(zip([constraints['path'][ii]], [(upper - lower)/2*sympy.sin(constraints['path'][ii])
+                                                          + (upper+lower)/2]))
+            for kk in range(len(states_rates)):
+                states_rates[kk] = states_rates[kk].subs(subber, simultaneous=True)
         else:
             raise NotImplementedError('Unknown path constraint method \"' + str(constraints_method['path'][ii]) + '\"')
 
@@ -198,27 +199,29 @@ def ocp_to_bvp(ocp, **kwargs):
     # Generate the problem data
     # TODO: We're not handling time well. This is hardcoded.
 
-    tf = sympify('_tf')
+    # tf = sympify('_tf')
+    time_parameters = [sympify('_' + str(independent_variable) + '0'), sympify('_' + str(independent_variable) + 'f')]
     # bc_terminal = [bc.subs(independent_variable, tf) for bc in bc_terminal]
-    dynamical_parameters = parameters + [tf]
-    dynamical_parameters_units = parameters_units + [independent_variable_units]
+    # dynamical_parameters = parameters + [tf]
+    dynamical_parameters = parameters + time_parameters
+    dynamical_parameters_units = parameters_units + 2 * [independent_variable_units]
     nondynamical_parameters = initial_lm_params + terminal_lm_params
     nondynamical_parameters_units = initial_lm_params_units + terminal_lm_params_units
 
-    states_rates = [tf*f for f in states_rates]
-    costates_rates = [tf*f for f in costates_rates]
-    dae_rates = [tf*f for f in dae_rates]
+    # states_rates = [tf*f for f in states_rates]
+    # costates_rates = [tf*f for f in costates_rates]
+    # dae_rates = [tf*f for f in dae_rates]
 
     if analytical_jacobian:
         if control_method == 'pmp':
             raise NotImplementedError('Analytical Jacobian calculation is not implemented for PMP control method.')
 
-        df_dy = [[0 for f in states_rates + costates_rates + dae_rates] for s in states + costates + dae_states]
+        df_dy = [[0 for _ in states_rates + costates_rates + dae_rates] for _ in states + costates + dae_states]
         for ii, f in enumerate(states_rates + costates_rates + dae_rates):
             for jj, s in enumerate(states + costates + dae_states):
                 df_dy[ii][jj] = str(derivative_fn(f, s))
 
-        df_dp = [[0 for f in states_rates + costates_rates + dae_rates] for s in dynamical_parameters]
+        df_dp = [[0 for _ in states_rates + costates_rates + dae_rates] for _ in dynamical_parameters]
         for ii, f in enumerate(states_rates + costates_rates + dae_rates):
             for jj, s in enumerate(dynamical_parameters):
                 df_dp[jj][ii] = str(derivative_fn(f, s))
@@ -244,7 +247,7 @@ def ocp_to_bvp(ocp, **kwargs):
            'states_units': [str(x) for x in states_units + costates_units + dae_units],
            'states_jac': [df_dy, df_dp],
            'quads': [str(x) for x in coparameters],
-           'quads_rates': [str(tf * x) for x in coparameters_rates],
+           'quads_rates': [str(x) for x in coparameters_rates],
            'quads_units': [str(x) for x in coparameters_units],
            'path_constraints': [],
            'path_constraints_units': [],
@@ -295,16 +298,16 @@ def ocp_to_bvp(ocp, **kwargs):
         if _compute_control is None:
             raise ValueError('Guess mapper not properly set up. Bind the control law to keyword \'_compute_control\'')
         sol = copy.deepcopy(sol)
-        # sol.t = sol.t*sol.dynamical_parameters[-1]
-        sol.t = sol.y[:, independent_index]
-        sol.dual_t = sol.y[:, (independent_index+1)*2-1]
+        sol.t = sol.t*sol
+        # sol.t = sol.y[:, independent_index]
+        # sol.dual_t = sol.y[:, (independent_index+1)*2-1]
         if num_dae == 0:
             sol.u = np.vstack([_compute_control(yi, None, sol.dynamical_parameters, sol.const) for yi in sol.y])
-            sol.y = np.delete(sol.y, np.s_[independent_index, (independent_index + 1) * 2 - 1], axis=1)
+            # sol.y = np.delete(sol.y, np.s_[independent_index, (independent_index + 1) * 2 - 1], axis=1)
             sol.dual = sol.y[:, -(len(costates)-1):]
         else:
             sol.u = sol.y[:, -num_dae:]
-            sol.y = np.delete(sol.y, np.s_[independent_index, (independent_index + 1) * 2 - 1], axis=1)
+            # sol.y = np.delete(sol.y, np.s_[independent_index, (independent_index + 1) * 2 - 1], axis=1)
             sol.dual = sol.y[:, -(len(costates)-1)-num_dae:-num_dae]
 
         sol.y = np.delete(sol.y, np.s_[-(len(costates)-1)-num_dae:], axis=1)
@@ -315,15 +318,15 @@ def ocp_to_bvp(ocp, **kwargs):
 
         for ele in control_constraint_mapping.keys():
             ctrl = control_constraint_mapping[ele]
-            lower = str(constraints_lower['path'][ele])
-            upper = str(constraints_upper['path'][ele])
+            low = str(constraints_lower['path'][ele])
+            up = str(constraints_upper['path'][ele])
             for ele2 in cmap.keys():
-                upper = upper.replace(ele2, str(sol.const[cmap[ele2]]))
-                lower = lower.replace(ele2, str(sol.const[cmap[ele2]]))
+                up = upper.replace(ele2, str(sol.const[cmap[ele2]]))
+                low = lower.replace(ele2, str(sol.const[cmap[ele2]]))
 
-            upper = eval(upper)
-            lower = eval(lower)
-            sol.u[:, ctrl] = (upper - lower)*(np.sin(sol.u[:, ctrl]) + 1)/2 + lower
+            up = eval(up)
+            low = eval(low)
+            sol.u[:, ctrl] = (up - low)*(np.sin(sol.u[:, ctrl]) + 1)/2 + low
 
         return sol
 
